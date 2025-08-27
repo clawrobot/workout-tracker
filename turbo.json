@@ -1,8 +1,9 @@
 {
-    "$schema": "https://turbo.build/schema.json",
-    "pipeline": {
+    "$schema": "https://turborepo.com/schema.json",
+    "tasks": {
         "dev": {
-            "cache": false
+            "cache": false,
+            "persistent": true
         },
         "build": {
             "dependsOn": [
