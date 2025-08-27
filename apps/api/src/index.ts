@@ -112,6 +112,53 @@ app.post("/workouts/:id/exercises", async (req, res) => {
     }
 });
 
+// List sets for an exercise
+app.get("/exercises/:id/sets", async (req, res) => {
+    const exerciseId = Number(req.params.id);
+    if (!Number.isInteger(exerciseId) || exerciseId <= 0) {
+        return res.status(400).json({ error: "Invalid exercise id" });
+    }
+    try {
+        const sets = await prisma.set.findMany({
+            where: { exerciseId },
+            orderBy: { createdAt: "desc" },
+        });
+        res.json(sets);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch sets" });
+    }
+});
+
+// Create a set under an exercise
+app.post("/exercises/:id/sets", async (req, res) => {
+    const exerciseId = Number(req.params.id);
+    if (!Number.isInteger(exerciseId) || exerciseId <= 0) {
+        return res.status(400).json({ error: "Invalid exercise id" });
+    }
+
+    const Body = z.object({
+        reps: z.number().int().positive(),
+        weight: z.number().nonnegative(),
+    });
+
+    const parsed = Body.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.flatten() });
+    }
+
+    try {
+        const set = await prisma.set.create({
+            data: { ...parsed.data, exerciseId },
+        });
+        res.status(201).json(set);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to create set" });
+    }
+});
+
+
 // read port from .env (fallback to 4000)
 const PORT = Number(process.env.PORT) || 4000;
 
